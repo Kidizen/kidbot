@@ -51,7 +51,7 @@ module.exports = function(robot) {
         timeForWhiskey(reply);
     });
 
-    robot.respond(/sales/i, function(reply) {
+    robot.respond(/^sales$/i, function(reply) {
 
         robot.http('http://timeforwhiskey.kidizen.com/sales')
             .header('Authorization', 'Basic ' + getTimeForWhiskeyAuth())
@@ -65,7 +65,7 @@ module.exports = function(robot) {
             });
     });
 
-        robot.respond(/sales detail/i, function(reply) {
+        robot.respond(/^sales detail$/i, function(reply) {
 
         robot.http('http://timeforwhiskey.kidizen.com/sales')
             .header('Authorization', 'Basic ' + getTimeForWhiskeyAuth())
@@ -74,7 +74,7 @@ module.exports = function(robot) {
                 res = res || {};
                 if (!err && body) {
                     body = JSON.parse(body);
-                    reply.send(':moneybag: ' + toMoney(body.total) + ' ( :kidbucks: ' + toPercent(body.kidbucks_percent) + ') \n :ios: ' + toMoney(body.ios) + ', :android: ' + toMoney(body.android));
+                    reply.send(':moneybag: ' + toMoney(body.total) + ' ( :kidbucks: ' + toPercent(body.kidbucks_percent) + ') \n :moneybag: ' + toMoney(body.total) + ' = :dress: ' + toMoney(body.order) + ':label: ' + toMoney(body.label) + ' \n :ios: ' + toMoney(body.ios) + ', :android: ' + toMoney(body.android));
                 }
             });
     });
