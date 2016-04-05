@@ -74,7 +74,7 @@ module.exports = function(robot) {
                 res = res || {};
                 if (!err && body) {
                     body = JSON.parse(body);
-                    reply.send(':moneybag: ' + toMoney(body.total) + ' ( :kidbucks: ' + toPercent(body.kidbucks_percent) + ') \n :moneybag: ' + toMoney(body.total) + ' = :dress: ' + toMoney(body.order) + ':label: ' + toMoney(body.label) + ' \n :ios: ' + toMoney(body.ios) + ', :android: ' + toMoney(body.android));
+                    reply.send(':moneybag: ' + toMoney(body.total) + '\n :kidbucks: ' + toPercent(body.kidbucks_percent) + '\n:dress: ' + toMoney(body.order) + '\n :label: ' + toMoney(body.label) + '\n :ios: ' + toMoney(body.ios) + '\n :android: ' + toMoney(body.android));
                 }
             });
     });
