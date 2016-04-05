@@ -51,7 +51,7 @@ module.exports = function(robot) {
         timeForWhiskey(reply);
     });
 
-    robot.respond(/^sales$/i, function(reply) {
+    robot.respond(/sales$/i, function(reply) {
 
         robot.http('http://timeforwhiskey.kidizen.com/sales')
             .header('Authorization', 'Basic ' + getTimeForWhiskeyAuth())
@@ -65,7 +65,7 @@ module.exports = function(robot) {
             });
     });
 
-        robot.respond(/^sales detail$/i, function(reply) {
+        robot.respond(/sales detail$/i, function(reply) {
 
         robot.http('http://timeforwhiskey.kidizen.com/sales')
             .header('Authorization', 'Basic ' + getTimeForWhiskeyAuth())
