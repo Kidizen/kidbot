@@ -11,16 +11,10 @@ module.exports = function(robot) {
         reply.send(IOS_VERSION);
     }
 
-    robot.hear(/what is the.*android version.*/i, function(reply) {
+    robot.hear(/.*android version.*/i, function(reply) {
         androidVersion(reply);
     });
-    robot.hear(/what's the.*android version.*/i, function(reply) {
-        androidVersion(reply);
-    });
-    robot.hear(/what is the.*ios version.*/i, function(reply) {
-        iOSVersion(reply);
-    });
-    robot.hear(/what's the.*ios version.*/i, function(reply) {
+    robot.hear(/.*ios version.*/i, function(reply) {
         iOSVersion(reply);
     });
 }
