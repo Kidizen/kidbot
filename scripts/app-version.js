@@ -1,7 +1,7 @@
 module.exports = function(robot) {
 
-    var IOS_VERSION = '4.3.20';
-    var ANDROID_VERSION = '4.0.750';
+    var IOS_VERSION = '4.3.21';
+    var ANDROID_VERSION = '4.1.757';
 
     function androidVersion(reply) {
         reply.send(ANDROID_VERSION);
@@ -15,6 +15,12 @@ module.exports = function(robot) {
         androidVersion(reply);
     });
     robot.hear(/.*ios version.*/i, function(reply) {
+        iOSVersion(reply);
+    });
+    robot.hear(/.*android release.*/i, function(reply) {
+        androidVersion(reply);
+    });
+    robot.hear(/.*ios release.*/i, function(reply) {
         iOSVersion(reply);
     });
 }
