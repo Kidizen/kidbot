@@ -87,7 +87,7 @@ module.exports = function(robot) {
         timeForWhiskey(reply);
     });
 
-    robot.hear(/kidbot sales/i, function(reply) {
+    robot.hear(/kidbot sales$/i, function(reply) {
         reply.send('One sec...');
         getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total);
