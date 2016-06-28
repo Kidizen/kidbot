@@ -1,3 +1,17 @@
+var pg = require('pg');
+
+// env variables read for connection info:
+// PGUSER
+// PGDATABASE
+// PGPASSWORD
+// PGPORT
+var pool = new pg.Pool({
+  max: 10,
+  idleTimeoutMillis: 1000 * 60 * 5
+});
+
+var QUERY = "";
+
 module.exports = function(robot) {
 
     Number.prototype.format = function(n, x) {
@@ -27,6 +41,27 @@ module.exports = function(robot) {
         }
     }
 
+    function getSalesInfo(reply) {
+        pool.connect(function(err, client, done) {
+
+            if (err) {
+                reply.send('Poop. I fail: ' + err);
+                return;
+            }
+
+            client.query('SELECT COUNT(*) FROM orders', function(err, result) {
+
+                done();
+
+                if (err) {
+                    reply.send('Poop. I fail: ' + err);
+                } else {
+                  reply.send('WIN: ' + result.rows[0]);
+                }
+            });
+        });
+    }
+
     function timeForWhiskey(reply) {
         robot.http('http://timeforwhiskey.kidizen.com/sales')
             .header('Authorization', 'Basic ' + getTimeForWhiskeyAuth())
@@ -44,6 +79,9 @@ module.exports = function(robot) {
            });
     }
 
+    robot.respond(/will it work/i, function(reply) {
+      getSalesInfo(reply);
+    });
     robot.hear(/is it whiskey time.*/i, function(reply) {
         timeForWhiskey(reply);
     });
@@ -51,7 +89,7 @@ module.exports = function(robot) {
         timeForWhiskey(reply);
     });
 
-    robot.hear(/(kidbot sales|kidbot sales.)$/i, function(reply) {
+    robot.respond(/sales/i, function(reply) {
 
         robot.http('http://timeforwhiskey.kidizen.com/sales')
             .header('Authorization', 'Basic ' + getTimeForWhiskeyAuth())
@@ -65,7 +103,7 @@ module.exports = function(robot) {
             });
     });
 
-        robot.hear(/kidbot sales detail/i, function(reply) {
+    robot.respond(/sales detail/i, function(reply) {
 
         robot.http('http://timeforwhiskey.kidizen.com/sales')
             .header('Authorization', 'Basic ' + getTimeForWhiskeyAuth())
