@@ -40,6 +40,7 @@ module.exports = function(robot) {
             // PGPORT
             pool = new pg.Pool({
               max: 10,
+              ssl: true,
               idleTimeoutMillis: 1000 * 60 * 5
             });
 
