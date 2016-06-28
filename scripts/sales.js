@@ -38,7 +38,6 @@ module.exports = function(robot) {
     }
 
     function getSalesInfo(reply, onSuccess) {
-        reply.send('One sec...');
         pool.connect(function(err, client, done) {
 
             if (err) {
@@ -69,7 +68,7 @@ module.exports = function(robot) {
     }
 
     function timeForWhiskey(reply) {
-        getSalesInfo({send: function() {}}, function(res) {
+        getSalesInfo(reply, function(res) {
             var total = parseFloat(res.total.replace('$', ''));
             if (total >= WHISKEY_THRESHOLD) {
                 reply.send('YES!');
@@ -88,13 +87,15 @@ module.exports = function(robot) {
         timeForWhiskey(reply);
     });
 
-    robot.respond(/sales/i, function(reply) {
+    robot.hear(/kidbot sales/i, function(reply) {
+        reply.send('One sec...');
         getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total);
         });
     });
 
-    robot.respond(/sales detail/i, function(reply) {
+    robot.hear(/kidbot sales detail/i, function(reply) {
+        reply.send('One sec...');
         getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total + '\n:dress: ' + res.order + '\n :label: ' + res.label + '\n :ios: ' + res.iosPercent + '\n :android: ' + res.androidPercent);
         });
