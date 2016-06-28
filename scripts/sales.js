@@ -1,17 +1,3 @@
-//var pg = require('pg');
-//
-//// env variables read for connection info:
-//// PGUSER
-//// PGDATABASE
-//// PGPASSWORD
-//// PGPORT
-//var pool = new pg.Pool({
-//  max: 10,
-//  idleTimeoutMillis: 1000 * 60 * 5
-//});
-//
-//var QUERY = "";
-
 module.exports = function(robot) {
 
     Number.prototype.format = function(n, x) {
@@ -42,6 +28,25 @@ module.exports = function(robot) {
     }
 
     function getSalesInfo(reply) {
+
+        var pg, pool;
+        try {
+            pg = require('pg');
+
+            // env variables read for connection info:
+            // PGUSER
+            // PGDATABASE
+            // PGPASSWORD
+            // PGPORT
+            pool = new pg.Pool({
+              max: 10,
+              idleTimeoutMillis: 1000 * 60 * 5
+            });
+
+        } catch(e) {
+            reply.send('I FAIL: ' + e.message);
+            return;
+        }
         pool.connect(function(err, client, done) {
 
             if (err) {
