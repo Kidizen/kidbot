@@ -1,16 +1,16 @@
-var pg = require('pg');
-
-// env variables read for connection info:
-// PGUSER
-// PGDATABASE
-// PGPASSWORD
-// PGPORT
-var pool = new pg.Pool({
-  max: 10,
-  idleTimeoutMillis: 1000 * 60 * 5
-});
-
-var QUERY = "";
+//var pg = require('pg');
+//
+//// env variables read for connection info:
+//// PGUSER
+//// PGDATABASE
+//// PGPASSWORD
+//// PGPORT
+//var pool = new pg.Pool({
+//  max: 10,
+//  idleTimeoutMillis: 1000 * 60 * 5
+//});
+//
+//var QUERY = "";
 
 module.exports = function(robot) {
 
