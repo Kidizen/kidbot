@@ -59,13 +59,13 @@ module.exports = function(robot) {
                     reply.send('Poop. I fail: ' + err);
                 } else {
                     var row = result.rows[0];
-                    var total = '$' + row.total.toFixed(2);
-                    var order = '$' + row.order.toFixed(2);
-                    var label = '$' + row.label.toFixed(2);
-                    var ios = '$' + row.ios.toFixed(2);
-                    var android = '$' + row.android.toFixed(2);
-                    var iosPercent = (Math.round(row.ios_percent * 100) % 100) + '%';
-                    var androidPercent = (Math.round(row.android_percent * 100) % 100) + '%';
+                    var total = toMoney(row.total);
+                    var order = toMoney(row.order);
+                    var label = toMoney(row.label);
+                    var ios = toMoney(row.ios);
+                    var android = toMoney(row.android);
+                    var iosPercent = toPercent(row.ios_percent);
+                    var androidPercent = toPercent(row.android_percent);
                     reply.send(':moneybag: ' + total + '\n:dress: ' + order + '\n :label: ' + label + '\n :ios: ' + iosPercent + '\n :android: ' + androidPercent);
                 }
             });
