@@ -43,7 +43,7 @@ module.exports = function(robot) {
     }
 
     function getSalesInfo(reply) {
-        reply('One sec...');
+        reply.send('One sec...');
         pool.connect(function(err, client, done) {
 
             if (err) {
