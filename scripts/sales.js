@@ -62,7 +62,7 @@ module.exports = function(robot) {
                 if (err) {
                     reply.send('Poop. I fail: ' + err);
                 } else {
-                  reply.send('WIN: ' + result.rows[0]);
+                  reply.send('WIN: ' + result.rows[0].count);
                 }
             });
         });
