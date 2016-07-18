@@ -69,7 +69,7 @@ module.exports = function(robot) {
 
     function timeForWhiskey(reply) {
         getSalesInfo(reply, function(res) {
-            var total = parseFloat(res.total.replace('$', ''));
+            var total = parseFloat(res.total.replace( /[^0-9\.]/g, ''));
             if (total >= WHISKEY_THRESHOLD) {
                 reply.send('YES!');
                 reply.send(':whiskey:');
