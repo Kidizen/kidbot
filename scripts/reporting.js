@@ -41,7 +41,7 @@ module.exports = function(robot) {
                         entry.push(row['Money Out']);
                         entry.push(row['Net Amount']);
                         entry.push(row['Balance']);
-                        row.push(entry.join(','));
+                        report.push(entry.join(','));
                     }
                     report.push('```');
                     reply.send(report.join('\n'));
