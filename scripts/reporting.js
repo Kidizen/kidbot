@@ -30,16 +30,18 @@ module.exports = function(robot) {
                 if (err) {
                     reply.send('Poop. I fail: ' + err);
                 } else {
-                    var row, report = ['```'];
+                    var row, entry, report = ['```'];
                     for (var i = 0; i < Math.min(result.rows.length, 5); i++) {
+                        entry = [];
                         row = result.rows[i];
-                        report.push(row['Date']);
-                        report.push(row['Description']);
-                        report.push(row['Detail']);
-                        report.push(row['Money In']);
-                        report.push(row['Money Out']);
-                        report.push(row['Net Amount']);
-                        report.push(row['Balance']);
+                        entry.push(row['Date']);
+                        entry.push(row['Description']);
+                        entry.push(row['Detail']);
+                        entry.push(row['Money In']);
+                        entry.push(row['Money Out']);
+                        entry.push(row['Net Amount']);
+                        entry.push(row['Balance']);
+                        row.push(entry.join(','));
                     }
                     report.push('```');
                     reply.send(report.join('\n'));
