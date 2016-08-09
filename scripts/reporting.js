@@ -31,7 +31,7 @@ module.exports = function(robot) {
                     reply.send('Poop. I fail: ' + err);
                 } else {
                     var row, report = ['```'];
-                    for (var i = 0; i < result.rows.length; i++) {
+                    for (var i = 0; i < Math.min(result.rows.length, 5); i++) {
                         row = result.rows[i];
                         report.push(row['Date']);
                         report.push(row['Description']);
