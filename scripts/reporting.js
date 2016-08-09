@@ -32,10 +32,10 @@ module.exports = function(robot) {
                 } else {
                     var row, report = ['```'];
                     for (row in result.rows) {
-                        report.push(row[0]);
-                        report.push(row[1]);
-                        report.push(row[2]);
-                        report.push(row[3]);
+                        report.push(row['total']);
+                        report.push(row.total);
+                        report.push(row['order']);
+                        report.push(row.order);
                     }
                     report.push('```');
                     reply.send(report.join('\n'));
