@@ -30,13 +30,13 @@ module.exports = function(robot) {
                 if (err) {
                     reply.send('Poop. I fail: ' + err);
                 } else {
-                    var row, report = ['```'];
-                    for (row in result.rows) {
+                    var row = result.rows[0], report = ['```'];
+                    //for (row in result.rows) {
                         report.push(row['total']);
                         report.push(row.total);
                         report.push(row['order']);
                         report.push(row.order);
-                    }
+                    //}
                     report.push('```');
                     reply.send(report.join('\n'));
                 }
