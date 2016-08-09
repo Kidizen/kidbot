@@ -33,10 +33,13 @@ module.exports = function(robot) {
                     var row, report = ['```'];
                     for (var i = 0; i < result.rows.length; i++) {
                         row = result.rows[i];
-                        report.push(row['total']);
-                        report.push(row.total);
-                        report.push(row['order']);
-                        report.push(row.order);
+                        report.push(row['Date']);
+                        report.push(row['Description']);
+                        report.push(row['Detail']);
+                        report.push(row['Money In']);
+                        report.push(row['Money Out']);
+                        report.push(row['Net Amount']);
+                        report.push(row['Balance']);
                     }
                     report.push('```');
                     reply.send(report.join('\n'));
