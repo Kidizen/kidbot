@@ -89,6 +89,22 @@ module.exports = function(robot) {
             reply.send(':trophy: New record! ' + res.total);
             robot.brain.set('totalRecord', res.total);
         }
+        if (toNum(res.ios) > toNum(robot.brain.get('iosRecord'))) {
+            reply.send(':ios: New record! ' + res.ios);
+            robot.brain.set('iosRecord', res.ios);
+        }
+        if (toNum(res.android) > toNum(robot.brain.get('androidRecord'))) {
+            reply.send(':android: New record! ' + res.android);
+            robot.brain.set('androidRecord', res.android);
+        }
+        if (toNum(res.order) > toNum(robot.brain.get('orderRecord'))) {
+            reply.send(':dress: New record! ' + res.order);
+            robot.brain.set('orderRecord', res.order);
+        }
+        if (toNum(res.label) > toNum(robot.brain.get('labelRecord'))) {
+            reply.send(':label: New record! ' + res.label);
+            robot.brain.set('labelRecord', res.label);
+        }
     }
 
     robot.respond(/.*(total|ios|android|order|label) (?:record|milestone).*/i, function(reply) {
