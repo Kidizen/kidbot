@@ -76,8 +76,32 @@ module.exports = function(robot) {
             } else {
                 reply.send('Not yet (' + res.total + ')');
             }
+            checkForRecord(reply, res);
         });
     }
+
+    function toNum(str) {
+        return parseFloat((str || '').trim().replace('$', '')) || 0;
+    }
+
+    function checkForRecord(reply, res) {
+        if (toNum(res.total) > toNum(robot.brain.get('totalRecord'))) {
+            reply.send(':trophy: New record! ' + res.total);
+            robot.brain.set('totalRecord', res.total);
+        }
+    }
+
+    robot.respond(/.*(total|ios|android|order|label) (?:record|milestone).*/i, function(reply) {
+        var record = reply.match[1].toLowerCase();
+        reply.send(robot.brain.get(record + 'Record'));
+    });
+
+    robot.respond(/.*set (total|ios|android|order|label) (?:record|milestone) to (.*)/i, function(reply) {
+        var record = reply.match[1];
+        var value = reply.match[2];
+        robot.brain.set(record + 'Record', value);
+        reply.send('Set ' + record + ' to ' + value + '!');
+    });
 
     robot.hear(/is it whiskey time.*/i, function(reply) {
         timeForWhiskey(reply);
@@ -91,6 +115,7 @@ module.exports = function(robot) {
         reply.send('One sec...');
         getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total);
+            checkForRecord(reply, res);
         });
     });
 
@@ -98,6 +123,7 @@ module.exports = function(robot) {
         reply.send('One sec...');
         getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total + '\n:dress: ' + res.order + '\n :label: ' + res.label + '\n :ios: ' + res.iosPercent + '\n :android: ' + res.androidPercent);
+            checkForRecord(reply, res);
         });
     });
 }
