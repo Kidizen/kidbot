@@ -81,7 +81,7 @@ module.exports = function(robot) {
     }
 
     function toNum(str) {
-        return parseFloat((str || '').trim().replace('$', '')) || 0;
+        return parseFloat((str || '').trim().replace('$', '').replace(',', '')) || 0;
     }
 
     function checkForRecord(reply, res) {
