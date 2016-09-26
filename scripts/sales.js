@@ -70,7 +70,7 @@ module.exports = function(robot) {
         getSalesInfo(reply, function(res) {
             var total = parseFloat(res.total.replace( /[^0-9\.]/g, ''));
             if (total >= robot.brain.get('whiskeyBar')) {
-                reply.send('YES!');
+                reply.send('YES! (' + res.total + ')');
                 reply.send(':whiskey:');
             } else {
                 reply.send('Not yet (' + res.total + ')');
