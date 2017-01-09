@@ -142,6 +142,11 @@ module.exports = function(robot) {
         });
     });
 
+    robot.hear(/when is whiskey.*/, function(reply) {
+        var bar = robot.brain.get('whiskeyBar');
+        reply.send('Whiskey bar set to ' + bar);
+    });
+
     robot.respond(/set whiskey bar to (.*)/i, function(reply) {
         var bar = reply.match[1];
         bar = parseInt(bar.trim().replace('$', '').replace(',', ''));
