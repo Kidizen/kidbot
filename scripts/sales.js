@@ -122,7 +122,15 @@ module.exports = function(robot) {
         timeForWhiskey(reply);
     });
 
+    robot.hear(/is it 🥃.time.*/i, function(reply) {
+        timeForWhiskey(reply);
+    });
+
     robot.hear(/is it time for whiskey.*/i, function(reply) {
+        timeForWhiskey(reply);
+    });
+
+    robot.hear(/is it time for 🥃.*/i, function(reply) {
         timeForWhiskey(reply);
     });
 
@@ -142,7 +150,12 @@ module.exports = function(robot) {
         });
     });
 
-    robot.hear(/when is whiskey.*/, function(reply) {
+    robot.hear(/when is whiskey.*/i, function(reply) {
+        var bar = robot.brain.get('whiskeyBar');
+        reply.send('Whiskey bar set to ' + bar);
+    });
+
+    robot.hear(/when is 🥃.*/i, function(reply) {
         var bar = robot.brain.get('whiskeyBar');
         reply.send('Whiskey bar set to ' + bar);
     });
@@ -153,4 +166,5 @@ module.exports = function(robot) {
         robot.brain.set('whiskeyBar', bar);
         reply.send('Whiskey bar set to ' + bar);
     });
+
 }
