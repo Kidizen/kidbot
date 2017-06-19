@@ -122,7 +122,11 @@ module.exports = function(robot) {
         timeForWhiskey(reply);
     });
 
-    robot.hear(/is it 🥃.time.*/i, function(reply) {
+    robot.hear(/is it 🥃 time.*/i, function(reply) {
+        timeForWhiskey(reply);
+    });
+
+    robot.hear(/is it :whiskey: time.*/i, function(reply) {
         timeForWhiskey(reply);
     });
 
@@ -131,6 +135,10 @@ module.exports = function(robot) {
     });
 
     robot.hear(/is it time for 🥃.*/i, function(reply) {
+        timeForWhiskey(reply);
+    });
+
+    robot.hear(/is it time for :whiskey:.*/i, function(reply) {
         timeForWhiskey(reply);
     });
 
