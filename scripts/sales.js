@@ -1,3 +1,22 @@
+// Description:
+//   you know, for kids
+//
+// Dependencies:
+//   None
+//
+// Configuration:
+//   None
+//
+// Commands:
+//   hubot is it whiskey time - well, is it?
+//   hubot is time for whiskey - well, is it?
+//   hubot sales - show me the money
+//   hubot sales detail - show me more info about the money
+//   hubot when is whiskey - when will it be whiskey time?
+//   hubot set whiskey bar to N - raise/lower the bar to N dollars
+//   hubot [total|ios|android|order|label] [record|milestone] - 
+//   hubot set[total|ios|android|order|label] [record|milestone] to N
+
 module.exports = function(robot) {
 
     var pg = require('pg');
@@ -118,31 +137,28 @@ module.exports = function(robot) {
         reply.send('Set ' + record + ' to ' + value + '!');
     });
 
-    robot.hear(/is it whiskey time.*/i, function(reply) {
+    robot.hear(/is it (🥃|whiskey|:whiskey:) time.*/i, function(reply) {
         timeForWhiskey(reply);
     });
 
-    robot.hear(/is it 🥃 time.*/i, function(reply) {
+    robot.hear(/is it time for (🥃|whiskey|:whiskey:).*/i, function(reply) {
         timeForWhiskey(reply);
     });
 
-    robot.hear(/is it :whiskey: time.*/i, function(reply) {
-        timeForWhiskey(reply);
+    robot.hear(/when is (🥃|whiskey|:whiskey:).*/i, function(reply) {
+        var bar = robot.brain.get('whiskeyBar');
+        reply.send(reply.match[1] + ' bar set to ' + bar);
     });
 
-    robot.hear(/is it time for whiskey.*/i, function(reply) {
-        timeForWhiskey(reply);
-    });
+    robot.respond(/set (🥃|whiskey|:whiskey:) bar to (.*)/i, function(reply) {
+        var whiskey = reply.match[1];
+        var bar = reply.match[2];
+        bar = parseInt(bar.trim().replace('$', '').replace(',', ''));
+        robot.brain.set('whiskeyBar', bar);
+        reply.send(whiskey + ' bar set to ' + bar);
+    });    
 
-    robot.hear(/is it time for 🥃.*/i, function(reply) {
-        timeForWhiskey(reply);
-    });
-
-    robot.hear(/is it time for :whiskey:.*/i, function(reply) {
-        timeForWhiskey(reply);
-    });
-
-    robot.hear(/kidbot sales$/i, function(reply) {
+    robot.hear(/kidbot (sales|:money_mouth_face:|🤑).*/i, function(reply) {
         reply.send('One sec...');
         getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total);
@@ -150,29 +166,12 @@ module.exports = function(robot) {
         });
     });
 
-    robot.hear(/kidbot sales detail.*/i, function(reply) {
+    robot.hear(/kidbot (sales|:money_mouth_face:|🤑) detail.*/i, function(reply) {
         reply.send('One sec...');
         getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total + '\n:dress: ' + res.order + '\n :label: ' + res.label + '\n :ios: ' + res.iosPercent + '\n :android: ' + res.androidPercent);
             checkForRecord(reply, res);
         });
-    });
-
-    robot.hear(/when is whiskey.*/i, function(reply) {
-        var bar = robot.brain.get('whiskeyBar');
-        reply.send('Whiskey bar set to ' + bar);
-    });
-
-    robot.hear(/when is 🥃.*/i, function(reply) {
-        var bar = robot.brain.get('whiskeyBar');
-        reply.send('Whiskey bar set to ' + bar);
-    });
-
-    robot.respond(/set whiskey bar to (.*)/i, function(reply) {
-        var bar = reply.match[1];
-        bar = parseInt(bar.trim().replace('$', '').replace(',', ''));
-        robot.brain.set('whiskeyBar', bar);
-        reply.send('Whiskey bar set to ' + bar);
     });
 
 }
