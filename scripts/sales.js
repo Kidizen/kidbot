@@ -175,7 +175,7 @@ module.exports = function(robot) {
     robot.hear(/kidbot (sales|:money_mouth_face:|🤑) detail.*/i, function(reply) {
         reply.send('One sec...');
         getSalesInfo(reply, function(res) {
-            reply.send(':moneybag: ' + res.total + '\n:dress: ' + res.order + '\n :label: ' + res.label + '\n :ios: ' + res.iosPercent + '\n :android: ' + res.androidPercent + '\n :desktop_computer: ' + res.webPercent);
+            reply.send(':moneybag: ' + res.total + '\n:dress: ' + res.order + '\n :label: ' + res.label + '\n :ios: ' + res.iosPercent + '(' + res.ios + ')' + '\n :android: ' + res.androidPercent + '('+ res.android + ')' + '\n :desktop_computer: ' + res.webPercent + '(' + res.web + ')' );
             checkForRecord(reply, res);
         });
     });
