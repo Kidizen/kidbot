@@ -11,8 +11,8 @@ module.exports = function(robot) {
     }
 
     function iOSVersion(reply) {
-        let version = robot.brain.get('iOSVersion');
-        let lastReleaseDate = new Date(robot.brain.get('iOSReleaseDate') || Date.now());
+        let version = robot.brain.get('iosVersion');
+        let lastReleaseDate = new Date(robot.brain.get('iosReleaseDate') || Date.now());
         let lastRelease = time.ago(lastReleaseDate) + ' on ' + dateFormat(lastReleaseDate, 'dddd, mmmm dS');
         reply.send(version + ' (released ' + lastRelease + ')');
     }
@@ -27,7 +27,7 @@ module.exports = function(robot) {
     robot.respond(/set ios version to (.*)/i, function(reply) {
         var version = reply.match[1];
         robot.brain.set('iosVersion', version);
-        robot.brain.set('iOSReleaseDate', Date.now());
+        robot.brain.set('iosReleaseDate', Date.now());
         reply.send('Version now set to ' + version);
     });
 
