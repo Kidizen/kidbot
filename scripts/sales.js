@@ -32,8 +32,6 @@ module.exports = function(robot) {
       idleTimeoutMillis: 1000 * 60 * 5
     });
 
-    const TIMEZONE = 'CDT';
-    var QUICK_TOTAL_QUERY = "SELECT ROUND((SUM(p.amount_cents) - SUM(p.refunded_amount_cents) + SUM(COALESCE(l.amount_cents,0)) - SUM(COALESCE(l.refunded_amount_cents,0)) - SUM(COALESCE(l.refunded_marketplace_fee_cents ,0))) / 100.0, 2) AS total FROM payments p INNER JOIN orders o ON o.id = p.order_id LEFT OUTER JOIN shipments s ON o.id = s.order_id LEFT OUTER JOIN kid_labels l ON s.id = l.shipment_id WHERE o.aasm_state = 'completed' AND o.purchase_date >= current_date::timestamp AT TIME ZONE '" + TIMEZONE + "';"
     var QUERY = "select distinct d.date as date, coalesce(pbs.order_amount,0) + coalesce(kl.label_amount,0) as total, pbs.order_amount as order, coalesce(kl.label_amount,0) as label, pbs.ios_amount as ios, pbs.android_amount as android, pbs.web_amount as web, round(pbs.ios_amount::decimal/pbs.order_amount, 4) as ios_percent, round(pbs.android_amount::decimal/pbs.order_amount, 4) as android_percent, round(pbs.web_amount::decimal/pbs.order_amount, 4) as web_percent from(select date_trunc('day', dd)::timestamp as date from generate_series(now() AT TIME ZONE 'CDT' - interval '7 days', CURRENT_TIMESTAMP AT TIME ZONE 'CDT', '1 day'::interval) dd) as d left join (select tmp.order_date, sum(tmp.amount) as order_amount, sum(case when tmp.created_through = 'ios' then tmp.amount else 0 end) as ios_amount, sum(case when tmp.created_through = 'android' then tmp.amount else 0 end) as android_amount, sum(case when tmp.created_through = 'web' then tmp.amount else 0 end) as web_amount from (select date_trunc('day',(o.purchase_date::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT') as order_date, o.id, o.user_id, o.seller_id, case when o.created_through is null then case when u.created_through = 'android' then u.created_through else 'ios' end else o.created_through end as created_through, o.fee_strategy_info->>'strategy_name' as seller_fee_strategy, round(pay.amount_cents/100.0,2) as amount from orders o inner join (select p.order_id, sum(p.amount_cents) as amount_cents from payments as p where p.aasm_state = 'successful' group by p.order_id) pay on pay.order_id = o.id left join users u on o.user_id = u.id where (o.purchase_date::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT' >= NOW() - interval '14 days' and o.aasm_state = 'completed' and o.user_id <> 0 order by (o.purchase_date::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT') tmp group by tmp.order_date) pbs on pbs.order_date = d.date left join (select date_trunc('day',(kl.created_at::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT') as date, round(sum(kl.amount_cents)/100.0,2) as label_amount from kid_labels kl left join shipments sh on sh.id = kl.shipment_id where sh.aasm_state not in ('canceled','failed') and kl.payment_method_type is NOT NULL group by date_trunc('day',(kl.created_at::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT')) kl on kl.date = d.date order by 1 desc";
 
     Number.prototype.format = function(n, x) {
@@ -55,30 +53,6 @@ module.exports = function(robot) {
         } catch(e) {
             return e.message;
         }
-    }
-
-    function getQuickSalesInfo(reply, onSuccess) {
-        pool.connect(function(err, client, done) {
-
-            if (err) {
-                reply.send('Poop. I fail: ' + err);
-                return;
-            }
-
-            client.query(QUICK_TOTAL_QUERY, function(err, result) {
-
-                done();
-
-                if (err) {
-                    reply.send('Poop. I fail: ' + err);
-                } else {
-                    var row = result.rows[0];
-                    onSuccess({
-                        total: toMoney(row.total)
-                    });
-                }
-            });
-        });
     }
 
     function getSalesInfo(reply, onSuccess) {
@@ -114,7 +88,7 @@ module.exports = function(robot) {
     }
 
     function timeForWhiskey(reply) {
-        getQuickSalesInfo(reply, function(res) {
+        getSalesInfo(reply, function(res) {
             var total = parseFloat(res.total.replace( /[^0-9\.]/g, ''));
             if (total >= robot.brain.get('whiskeyBar')) {
                 reply.send('YES! (' + res.total + ')');
@@ -192,7 +166,7 @@ module.exports = function(robot) {
 
     robot.hear(/kidbot (sales|:money_mouth_face:|🤑).*/i, function(reply) {
         reply.send('One sec...');
-        getQuickSalesInfo(reply, function(res) {
+        getSalesInfo(reply, function(res) {
             reply.send(':moneybag: ' + res.total);
             checkForRecord(reply, res);
         });
