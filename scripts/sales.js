@@ -36,6 +36,7 @@ module.exports = function(robot) {
     let TIMEZONE = 'CDT';
     let HOUR_OFFSET = TIMEZONE == 'CDT' ? 5 : 6;
     let MILLESECOND_OFFSET = (HOUR_OFFSET*60*60*1000);
+    let ONE_DAY_MILLIS = 24*60*60*1000;
 
     Number.prototype.format = function(n, x) {
         var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
@@ -45,7 +46,7 @@ module.exports = function(robot) {
     function getLocalTime() {
         var now = new Date();
         now.setHours(0,0,0,0); // beginning of the day, UTC
-        return new Date(now.getTime() - MILLESECOND_OFFSET);
+        return new Date(now.getTime() + MILLESECOND_OFFSET);
     }
 
     function getQuery() {
