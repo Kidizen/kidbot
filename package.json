@@ -5,7 +5,7 @@
   "author": "Kidizen devs",
   "description": "A simple helpful robot for Kidizen",
   "dependencies": {
-    "dateformat": "^3.0.3",
+    "dateformat": "^3.0.2",
     "hubot": "^2.18.0",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.2.6",
