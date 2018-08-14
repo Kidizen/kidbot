@@ -34,7 +34,6 @@ module.exports = function(robot) {
     });
 
     let TIMEZONE = 'CDT';
-    let OFFSET = TIMEZONE == 'CDT' ? 5 : 6;
 
     Number.prototype.format = function(n, x) {
         var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
@@ -43,8 +42,6 @@ module.exports = function(robot) {
 
     function getQuery() {
         var now = new Date();
-        now.setHours(now.getHours()-OFFSET,0,0,0);
-
         return "SELECT \
                 round((tmp.gross_sales_cents - tmp.refunded_sales_cents + tmp.gross_labels - tmp.refunded_labels - tmp.refunded_label_fees) / 100.0, 2) AS total, \
                 round((tmp.gross_sales_cents - tmp.refunded_sales_cents) / 100.0, 2) AS order, \
@@ -72,7 +69,7 @@ module.exports = function(robot) {
                 LEFT OUTER JOIN shipments s ON o.id = s.order_id \
                 LEFT OUTER JOIN kid_labels l ON s.id = l.shipment_id \
                 WHERE o.aasm_state = 'completed' \
-                AND o.created_at >= '" + dateFormat(now, "yyyy-mm-dd'T'HH:MM:ss")  + "') AS tmp";
+                AND o.created_at >= '" + dateFormat(now, TIMEZONE + ":yyyy-mm-dd'T'HH:MM:ss")  + "') AS tmp";
     }
 
     function toMoney(str) {
