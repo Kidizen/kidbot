@@ -19,7 +19,6 @@
 
 module.exports = function(robot) {
 
-    var dateFormat = require('dateformat');
     var pg = require('pg');
 
     // env variables read for connection info:
@@ -33,51 +32,12 @@ module.exports = function(robot) {
       idleTimeoutMillis: 1000 * 60 * 5
     });
 
-    let TIMEZONE = 'CDT';
-    let HOUR_OFFSET = TIMEZONE == 'CDT' ? 5 : 6;
-    let MILLESECOND_OFFSET = (HOUR_OFFSET*60*60*1000);
+    var QUERY = "select distinct d.date as date, coalesce(pbs.order_amount,0) + coalesce(kl.label_amount,0) as total, pbs.order_amount as order, coalesce(kl.label_amount,0) as label, pbs.ios_amount as ios, pbs.android_amount as android, pbs.web_amount as web, round(pbs.ios_amount::decimal/pbs.order_amount, 4) as ios_percent, round(pbs.android_amount::decimal/pbs.order_amount, 4) as android_percent, round(pbs.web_amount::decimal/pbs.order_amount, 4) as web_percent from(select date_trunc('day', dd)::timestamp as date from generate_series(now() AT TIME ZONE 'CDT' - interval '7 days', CURRENT_TIMESTAMP AT TIME ZONE 'CDT', '1 day'::interval) dd) as d left join (select tmp.order_date, sum(tmp.amount) as order_amount, sum(case when tmp.created_through = 'ios' then tmp.amount else 0 end) as ios_amount, sum(case when tmp.created_through = 'android' then tmp.amount else 0 end) as android_amount, sum(case when tmp.created_through = 'web' then tmp.amount else 0 end) as web_amount from (select date_trunc('day',(o.purchase_date::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT') as order_date, o.id, o.user_id, o.seller_id, case when o.created_through is null then case when u.created_through = 'android' then u.created_through else 'ios' end else o.created_through end as created_through, o.fee_strategy_info->>'strategy_name' as seller_fee_strategy, round(pay.amount_cents/100.0,2) as amount from orders o inner join (select p.order_id, sum(p.amount_cents) as amount_cents from payments as p where p.aasm_state = 'successful' group by p.order_id) pay on pay.order_id = o.id left join users u on o.user_id = u.id where (o.purchase_date::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT' >= NOW() - interval '14 days' and o.aasm_state = 'completed' and o.user_id <> 0 order by (o.purchase_date::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT') tmp group by tmp.order_date) pbs on pbs.order_date = d.date left join (select date_trunc('day',(kl.created_at::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT') as date, round(sum(kl.amount_cents)/100.0,2) as label_amount from kid_labels kl left join shipments sh on sh.id = kl.shipment_id where sh.aasm_state not in ('canceled','failed') and kl.payment_method_type is NOT NULL group by date_trunc('day',(kl.created_at::TIMESTAMP WITH TIME ZONE) AT TIME ZONE 'CDT')) kl on kl.date = d.date order by 1 desc";
 
     Number.prototype.format = function(n, x) {
         var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
         return this.toFixed(Math.max(0, ~~n)).replace(new RegExp(re, 'g'), '$&,');
     };
-
-    function getQuery() {
-        var now_millis = Date.now();
-        now_millis -= MILLESECOND_OFFSET; // adjust for timezone
-
-        var now = new Date(now_millis);
-        now.setHours(0,0,0,0); // beginning of the day
-
-        return "SELECT \
-                round((tmp.gross_sales_cents - tmp.refunded_sales_cents + tmp.gross_labels - tmp.refunded_labels - tmp.refunded_label_fees) / 100.0, 2) AS total, \
-                round((tmp.gross_sales_cents - tmp.refunded_sales_cents) / 100.0, 2) AS order, \
-                round((tmp.gross_labels - tmp.refunded_labels - tmp.refunded_label_fees) / 100.0, 2) AS label, \
-                round((tmp.gross_ios_cents - tmp.refunded_ios_cents) / 100.0, 2) AS ios, \
-                round((tmp.gross_android_cents - tmp.refunded_android_cents) / 100.0, 2) AS android, \
-                round((tmp.gross_web_cents - tmp.refunded_web_cents) / 100.0, 2) AS web, \
-                round((tmp.gross_ios_cents - tmp.refunded_ios_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS ios_percent, \
-                round((tmp.gross_android_cents - tmp.refunded_android_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS android_percent, \
-                round((tmp.gross_web_cents - tmp.refunded_web_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS web_percent \
-            FROM (SELECT \
-                    SUM(p.amount_cents) AS gross_sales_cents, \
-                    SUM(p.refunded_amount_cents) AS refunded_sales_cents, \
-                    SUM(CASE WHEN o.created_through = 'ios' THEN p.amount_cents ELSE 0 END) AS gross_ios_cents, \
-                    SUM(CASE WHEN o.created_through = 'ios' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_ios_cents, \
-                    SUM(CASE WHEN o.created_through = 'android' THEN p.amount_cents ELSE 0 END) AS gross_android_cents, \
-                    SUM(CASE WHEN o.created_through = 'android' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_android_cents, \
-                    SUM(CASE WHEN o.created_through = 'web' THEN p.amount_cents ELSE 0 END) as gross_web_cents, \
-                    SUM(CASE WHEN o.created_through = 'web' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_web_cents, \
-                    SUM(COALESCE(l.amount_cents,0)) AS gross_labels, \
-                    SUM(COALESCE(l.refunded_amount_cents,0)) AS refunded_labels, \
-                    SUM(COALESCE(l.refunded_marketplace_fee_cents ,0)) AS refunded_label_fees \
-                FROM payments p \
-                INNER JOIN orders o ON o.id = p.order_id \
-                LEFT OUTER JOIN shipments s ON o.id = s.order_id \
-                LEFT OUTER JOIN kid_labels l ON s.id = l.shipment_id \
-                WHERE o.aasm_state = 'completed' \
-                AND o.created_at >= '" + dateFormat(now, "yyyy-mm-dd'T'HH:MM:ss")  + "') AS tmp";
-    }
 
     function toMoney(str) {
         try {
@@ -103,7 +63,7 @@ module.exports = function(robot) {
                 return;
             }
 
-            client.query(getQuery(), function(err, result) {
+            client.query(QUERY, function(err, result) {
 
                 done();
 
@@ -169,16 +129,6 @@ module.exports = function(robot) {
             reply.send(':label: New record! ' + res.label);
             robot.brain.set('labelRecord', res.label);
         }
-    }
-
-    robot.respond(/timezone time/, function(reply)) {
-        var now_millis = Date.now();
-        now_millis -= MILLESECOND_OFFSET; // adjust for timezone
-
-        var now = new Date(now_millis);
-        now.setHours(0,0,0,0); // beginning of the day
-
-        reply.send(dateFormat(now, "yyyy-mm-dd'T'HH:MM:ss"));
     }
 
     robot.respond(/.*(total|ios|android|web|order|label) (?:record|milestone).*/i, function(reply) {
