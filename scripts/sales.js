@@ -42,13 +42,20 @@ module.exports = function(robot) {
         return this.toFixed(Math.max(0, ~~n)).replace(new RegExp(re, 'g'), '$&,');
     };
 
+    function getLocalTime() {
+        // var now_millis = Date.now();
+        // now_millis -= MILLESECOND_OFFSET; // adjust for timezone
+
+        var now = new Date();
+        now.setHours(0,0,0,0);          // beginning of the day, UTC
+
+        now.setDays(now.getDays() - 1); // subtract 1 day
+        now.setHours(24-HOUR_OFFSET);   // set hours
+
+        return now;
+    }
+
     function getQuery() {
-        var now_millis = Date.now();
-        now_millis -= MILLESECOND_OFFSET; // adjust for timezone
-
-        var now = new Date(now_millis);
-        now.setHours(0,0,0,0); // beginning of the day
-
         return "SELECT \
                 round((tmp.gross_sales_cents - tmp.refunded_sales_cents + tmp.gross_labels - tmp.refunded_labels - tmp.refunded_label_fees) / 100.0, 2) AS total, \
                 round((tmp.gross_sales_cents - tmp.refunded_sales_cents) / 100.0, 2) AS order, \
@@ -76,7 +83,7 @@ module.exports = function(robot) {
                 LEFT OUTER JOIN shipments s ON o.id = s.order_id \
                 LEFT OUTER JOIN kid_labels l ON s.id = l.shipment_id \
                 WHERE o.aasm_state = 'completed' \
-                AND o.created_at >= '" + dateFormat(now, "yyyy-mm-dd'T'HH:MM:ss")  + "') AS tmp";
+                AND o.created_at >= '" + dateFormat(getLocalTime(), "yyyy-mm-dd'T'HH:MM:ss")  + "') AS tmp";
     }
 
     function toMoney(str) {
@@ -172,13 +179,7 @@ module.exports = function(robot) {
     }
 
     robot.respond(/timezone time/, function(reply) {
-        var now_millis = Date.now();
-        now_millis -= MILLESECOND_OFFSET; // adjust for timezone
-
-        var now = new Date(now_millis);
-        now.setHours(0,0,0,0); // beginning of the day
-
-        reply.send(dateFormat(now, "yyyy-mm-dd'T'HH:MM:ss"));
+        reply.send(dateFormat(getLocalTime(), "yyyy-mm-dd'T'HH:MM:ss"));
     });
 
     robot.respond(/.*(total|ios|android|web|order|label) (?:record|milestone).*/i, function(reply) {
