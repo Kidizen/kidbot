@@ -43,16 +43,9 @@ module.exports = function(robot) {
     };
 
     function getLocalTime() {
-        // var now_millis = Date.now();
-        // now_millis -= MILLESECOND_OFFSET; // adjust for timezone
-
         var now = new Date();
-        now.setHours(0,0,0,0);          // beginning of the day, UTC
-
-        now.setDays(now.getDays() - 1); // subtract 1 day
-        now.setHours(24-HOUR_OFFSET);   // set hours
-
-        return now;
+        now.setHours(0,0,0,0); // beginning of the day, UTC
+        return new Date(now.getTime() - MILLESECOND_OFFSET);
     }
 
     function getQuery() {
