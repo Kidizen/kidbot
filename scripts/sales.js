@@ -179,7 +179,7 @@ module.exports = function(robot) {
         now.setHours(0,0,0,0); // beginning of the day
 
         reply.send(dateFormat(now, "yyyy-mm-dd'T'HH:MM:ss"));
-    }
+    });
 
     robot.respond(/.*(total|ios|android|web|order|label) (?:record|milestone).*/i, function(reply) {
         var record = reply.match[1].toLowerCase();
