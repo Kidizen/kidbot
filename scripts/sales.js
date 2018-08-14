@@ -171,7 +171,7 @@ module.exports = function(robot) {
         }
     }
 
-    robot.respond(/timezone time/, function(reply)) {
+    robot.respond(/timezone time/, function(reply) {
         var now_millis = Date.now();
         now_millis -= MILLESECOND_OFFSET; // adjust for timezone
 
