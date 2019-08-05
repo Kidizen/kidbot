@@ -6,7 +6,7 @@
   "description": "A simple helpful robot for Kidizen",
   "dependencies": {
     "dateformat": "^3.0.2",
-    "hubot": "^2.18.0",
+    "hubot": "^3.3.2",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.2.6",
     "hubot-google-translate": "^0.2.0",
@@ -17,7 +17,7 @@
     "hubot-rules": "^0.1.1",
     "hubot-scripts": "^2.16.2",
     "hubot-shipit": "^0.2.0",
-    "hubot-slack": "^3.4.2",
+    "hubot-slack": "^4.7.1",
     "pg": "^6.0.1",
     "time-ago": "^0.1.0"
   },
