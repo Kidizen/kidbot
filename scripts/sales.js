@@ -340,14 +340,6 @@ module.exports = function(robot) {
     robot.hear(/kidbot (sales|:money_mouth_face:|🤑).*/i, function(reply) {
         reply.send('One sec...');
         getSalesInfo(reply, function(res) {
-            reply.send(':moneybag: ' + res.total);
-            checkForRecord(reply, res);
-        });
-    });
-
-    robot.hear(/kidbot (sales|:money_mouth_face:|🤑) detail.*/i, function(reply) {
-        reply.send('One sec...');
-        getSalesInfo(reply, function(res) {
             reply.send(
               ':moneybag: ' + res.total +
               '\n:dress: ' + res.order +
