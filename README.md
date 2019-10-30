@@ -157,7 +157,11 @@ Where `<adapter>` is the name of your adapter without the `hubot-` prefix.
 
 ## Deployment
 
-We have a Heroku pipeline that deploys whenever code is commited to `master`.
+We have a Heroku pipeline that deploys whenever code is commited to `master`:
+
+```
+git push heroku master
+```
 
 
 ### Deploying to some other Heroku app

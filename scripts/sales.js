@@ -61,8 +61,8 @@ module.exports = function(robot) {
             sum(tmp.amount) as order_amount, \
             sum(case when tmp.created_through = 'ios' then tmp.amount else 0 end) as ios_amount, \
             sum(case when tmp.created_through = 'android' then tmp.amount else 0 end) as android_amount, \
-            sum(case when tmp.created_through = 'web' and tmp.facebook_order_id is null then tmp.amount else 0 end) as web_amount, \
-            sum(case when tmp.created_through = 'web'  and tmp.facebook_order_id is not null then tmp.amount else 0 end) as facebook_amount \
+            sum(case when tmp.created_through = 'web' then tmp.amount else 0 end) as web_amount, \
+            sum(case when tmp.facebook_order_id is not null then tmp.amount else 0 end) as facebook_amount \
           from ( \
             select \
               date_trunc('day', (o.purchase_date :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') as order_date, \
@@ -149,10 +149,10 @@ module.exports = function(robot) {
                         SUM(CASE WHEN o.created_through = 'ios' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_ios_cents, \
                         SUM(CASE WHEN o.created_through = 'android' THEN p.amount_cents ELSE 0 END) AS gross_android_cents, \
                         SUM(CASE WHEN o.created_through = 'android' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_android_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NULL THEN p.amount_cents ELSE 0 END) as gross_web_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NULL THEN p.refunded_amount_cents ELSE 0 END) AS refunded_web_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NOT NULL THEN p.amount_cents ELSE 0 END) as gross_facebook_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NOT NULL THEN p.refunded_amount_cents ELSE 0 END) AS refunded_facebook_cents \
+                        SUM(CASE WHEN o.created_through = 'web' THEN p.amount_cents ELSE 0 END) as gross_web_cents, \
+                        SUM(CASE WHEN o.created_through = 'web' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_web_cents, \
+                        SUM(CASE WHEN o.facebook_order_id IS NOT NULL THEN p.amount_cents ELSE 0 END) as gross_facebook_cents, \
+                        SUM(CASE WHEN o.facebook_order_id IS NOT NULL THEN p.refunded_amount_cents ELSE 0 END) AS refunded_facebook_cents \
                     FROM payments p \
                     INNER JOIN orders o ON o.id = p.order_id \
                     WHERE o.aasm_state = 'completed' \
@@ -356,7 +356,7 @@ module.exports = function(robot) {
               '\n:ios: ' + res.iosPercent + ' (' + res.ios + ')' +
               '\n:android: ' + res.androidPercent + ' ('+ res.android + ')' +
               '\n:desktop_computer: ' + res.webPercent + ' (' + res.web + ')' +
-              '\n:blue_book: ' + res.facebookPercent + ' (' + res.facebook + ')' );
+              '\n:facebook: ' + res.facebookPercent + ' (' + res.facebook + ')' );
             checkForRecord(reply, res);
         });
     });
