@@ -245,9 +245,11 @@ module.exports = function(robot) {
                         ios:                    toMoney(row.ios),
                         android:                toMoney(row.android),
                         web:                    toMoney(row.web),
+                        facebook:               toMoney(row.facebook),
                         iosPercent:             toPercent(row.ios_percent),
                         androidPercent:         toPercent(row.android_percent),
-                        webPercent:             toPercent(row.web_percent)
+                        webPercent:             toPercent(row.web_percent),
+                        facebookPercent:        toPercent(row.facebook_percent)
                     });
                 }
             });
