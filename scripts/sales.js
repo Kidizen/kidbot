@@ -36,7 +36,79 @@ module.exports = function(robot) {
     const TIMEZONE = 'CDT';
     const HOUR_OFFSET = TIMEZONE == 'CDT' ? 5 : 6;
     const MILLESECOND_OFFSET = (HOUR_OFFSET*60*60*1000);
-    const QUERY = "select distinct d.date as date, coalesce(pbs.order_amount, 0) + coalesce(kl.label_amount, 0) as total, pbs.order_amount as order, coalesce(kl.label_amount, 0) as label, coalesce(cashouts.cashout_fee_amount, 0) as cashout_fees_collected, pbs.ios_amount as ios, pbs.android_amount as android, pbs.web_amount as web, round(pbs.ios_amount :: decimal / pbs.order_amount, 4) as ios_percent, round(pbs.android_amount :: decimal / pbs.order_amount, 4) as android_percent, round(pbs.web_amount :: decimal / pbs.order_amount, 4) as web_percent from (select date_trunc('day', dd) :: timestamp as date from generate_series(now() AT TIME ZONE '" + TIMEZONE + "' - interval '7 days', CURRENT_TIMESTAMP AT TIME ZONE '" + TIMEZONE + "', '1 day' :: interval) dd) as d left join (select tmp.order_date, sum(tmp.amount) as order_amount, sum(case when tmp.created_through = 'ios' then tmp.amount else 0 end) as ios_amount, sum(case when tmp.created_through = 'android' then tmp.amount else 0 end) as android_amount, sum(case when tmp.created_through = 'web' then tmp.amount else 0 end) as web_amount from (select date_trunc('day', (o.purchase_date :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') as order_date, o.id, o.user_id, o.seller_id, case when o.created_through is null then case when u.created_through = 'android' then u.created_through else 'ios' end else o.created_through end as created_through, o.fee_strategy_info->>'strategy_name' as seller_fee_strategy, round(pay.amount_cents / 100.0, 2) as amount from orders o inner join (select p.order_id, sum(p.amount_cents) as amount_cents from payments as p where p.aasm_state = 'successful' group by p.order_id) pay on pay.order_id = o.id left join users u on o.user_id = u.id where (o.purchase_date :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "' >= NOW() - interval '14 days' and o.aasm_state = 'completed' and o.user_id <> 0 order by (o.purchase_date :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') tmp group by tmp.order_date) pbs on pbs.order_date = d.date left join (select date_trunc('day', (kl.created_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') as date, round(sum(kl.amount_cents) / 100.0, 2) as label_amount from kid_labels kl left join shipments sh on sh.id = kl.shipment_id where sh.aasm_state not in ('canceled', 'failed') and kl.payment_method_type is NOT NULL group by date_trunc('day', (kl.created_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "')) kl on kl.date = d.date left join (select date_trunc('day', (cashouts.completed_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') as date, round(sum(cashouts.fee_amount_cents) / 100.0, 2) as cashout_fee_amount from cashouts where cashouts.kidbucks_moved = TRUE group by date_trunc('day', (cashouts.completed_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "')) cashouts on cashouts.date = d.date order by 1 desc"
+
+    const QUERY = "select \
+        distinct d.date as date, \
+        coalesce(pbs.order_amount, 0) + coalesce(kl.label_amount, 0) as total, \
+        pbs.order_amount as order, \
+        coalesce(kl.label_amount, 0) as label, \
+        coalesce(cashouts.cashout_fee_amount, 0) as cashout_fees_collected, \
+        pbs.ios_amount as ios, \
+        pbs.android_amount as android, \
+        pbs.web_amount as web, \
+        pbs.facebook_amount as facebook, \
+        round(pbs.ios_amount :: decimal / pbs.order_amount, 4) as ios_percent, \
+        round(pbs.android_amount :: decimal / pbs.order_amount, 4) as android_percent, \
+        round(pbs.web_amount :: decimal / pbs.order_amount, 4) as web_percent, \
+        round(pbs.facebook_amount :: decimal / pbs.order_amount, 4) as facebook_percent \
+      from ( \
+        select \
+          date_trunc('day', dd) :: timestamp as date \
+        from generate_series(now() AT TIME ZONE '" + TIMEZONE + "' - interval '7 days', CURRENT_TIMESTAMP AT TIME ZONE '" + TIMEZONE + "', '1 day' :: interval) dd) as d \
+        left join ( \
+          select \
+            tmp.order_date, \
+            sum(tmp.amount) as order_amount, \
+            sum(case when tmp.created_through = 'ios' then tmp.amount else 0 end) as ios_amount, \
+            sum(case when tmp.created_through = 'android' then tmp.amount else 0 end) as android_amount, \
+            sum(case when tmp.created_through = 'web' and tmp.facebook_order_id is null then tmp.amount else 0 end) as web_amount, \
+            sum(case when tmp.created_through = 'web'  and tmp.facebook_order_id is not null then tmp.amount else 0 end) as facebook_amount \
+          from ( \
+            select \
+              date_trunc('day', (o.purchase_date :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') as order_date, \
+              o.id, \
+              o.user_id, \
+              o.seller_id, \
+              o.facebook_order_id, \
+              case when o.created_through is null then case when u.created_through = 'android' then u.created_through else 'ios' end else o.created_through end as created_through, \
+              o.fee_strategy_info->>'strategy_name' as seller_fee_strategy, \
+              round(pay.amount_cents / 100.0, 2) as amount \
+            from orders o \
+            inner join ( \
+              select \
+                p.order_id, \
+                sum(p.amount_cents) as amount_cents \
+                from payments as p \
+                where p.aasm_state = 'successful' \
+                group by p.order_id \
+              ) pay on pay.order_id = o.id \
+            left join users u \
+            on o.user_id = u.id \
+            where (o.purchase_date :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "' >= NOW() - interval '14 days' \
+            and o.aasm_state = 'completed' \
+            and o.user_id <> 0 \
+            order by (o.purchase_date :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "'\
+          ) tmp \
+          group by tmp.order_date\
+        ) pbs on pbs.order_date = d.date \
+        left join (\
+          select \
+            date_trunc('day', (kl.created_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') as date, \
+            round(sum(kl.amount_cents) / 100.0, 2) as label_amount \
+          from kid_labels kl \
+          left join shipments sh on sh.id = kl.shipment_id \
+          where sh.aasm_state not in ('canceled', 'failed') \
+          and kl.payment_method_type is NOT NULL \
+          group by date_trunc('day', (kl.created_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') \
+        ) kl on kl.date = d.date \
+        left join ( \
+          select \
+            date_trunc('day', (cashouts.completed_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "') as date, \
+            round(sum(cashouts.fee_amount_cents) / 100.0, 2) as cashout_fee_amount \
+          from cashouts \
+          where cashouts.kidbucks_moved = TRUE \
+          group by date_trunc('day', (cashouts.completed_at :: TIMESTAMP WITH TIME ZONE) AT TIME ZONE '" + TIMEZONE + "')\
+        ) cashouts on cashouts.date = d.date order by 1 desc"
 
     Number.prototype.format = function(n, x) {
         var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
@@ -68,7 +140,8 @@ module.exports = function(robot) {
                     round((tmp.gross_web_cents - tmp.refunded_web_cents) / 100.0, 2) AS web, \
                     round((tmp.gross_ios_cents - tmp.refunded_ios_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS ios_percent, \
                     round((tmp.gross_android_cents - tmp.refunded_android_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS android_percent, \
-                    round((tmp.gross_web_cents - tmp.refunded_web_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS web_percent \
+                    round((tmp.gross_web_cents - tmp.refunded_web_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS web_percent, \
+                    round((tmp.gross_facebook_cents - tmp.refunded_facebook_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS facebook_percent \
                 FROM (SELECT  \
                         SUM(p.amount_cents) AS gross_sales_cents, \
                         SUM(p.refunded_amount_cents) AS refunded_sales_cents, \
@@ -76,8 +149,10 @@ module.exports = function(robot) {
                         SUM(CASE WHEN o.created_through = 'ios' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_ios_cents, \
                         SUM(CASE WHEN o.created_through = 'android' THEN p.amount_cents ELSE 0 END) AS gross_android_cents, \
                         SUM(CASE WHEN o.created_through = 'android' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_android_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' THEN p.amount_cents ELSE 0 END) as gross_web_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_web_cents \
+                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NULL THEN p.amount_cents ELSE 0 END) as gross_web_cents, \
+                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NULL THEN p.refunded_amount_cents ELSE 0 END) AS refunded_web_cents, \
+                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NOT NULL THEN p.amount_cents ELSE 0 END) as gross_facebook_cents, \
+                        SUM(CASE WHEN o.created_through = 'web' AND o.facebook_order_id IS NOT NULL THEN p.refunded_amount_cents ELSE 0 END) AS refunded_facebook_cents \
                     FROM payments p \
                     INNER JOIN orders o ON o.id = p.order_id \
                     WHERE o.aasm_state = 'completed' \
@@ -278,7 +353,8 @@ module.exports = function(robot) {
               '\n:bank: ' + res.cashout_fees_collected +
               '\n:ios: ' + res.iosPercent + ' (' + res.ios + ')' +
               '\n:android: ' + res.androidPercent + ' ('+ res.android + ')' +
-              '\n:desktop_computer: ' + res.webPercent + ' (' + res.web + ')' );
+              '\n:desktop_computer: ' + res.webPercent + ' (' + res.web + ')' +
+              '\n:blue_book: ' + res.facebookPercent + ' (' + res.facebook + ')' );
             checkForRecord(reply, res);
         });
     });
