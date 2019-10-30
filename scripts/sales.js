@@ -70,7 +70,7 @@ module.exports = function(robot) {
               o.user_id, \
               o.seller_id, \
               o.facebook_order_id, \
-              case when o.created_through is null then case when u.created_through = 'android' then u.created_through else 'ios' end else o.created_through end as created_through, \
+              case when o.created_through is null and o.facebook_order_id is null then case when u.created_through = 'android' then u.created_through else 'ios' end else o.created_through end as created_through, \
               o.fee_strategy_info->>'strategy_name' as seller_fee_strategy, \
               round(pay.amount_cents / 100.0, 2) as amount \
             from orders o \
