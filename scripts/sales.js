@@ -77,9 +77,9 @@ module.exports = function(robot) {
             inner join ( \
               select \
                 p.order_id, \
-                sum(p.amount_cents) as amount_cents \
+                sum(p.amount_cents - p.refunded_amount_cents - p.sales_tax_amount_cents - p.refunded_sales_tax_amount_cents) as amount_cents \
                 from payments as p \
-                where p.aasm_state = 'successful' \
+                where p.aasm_state = 'successful' or p.aasm_state = 'partially_refunded' \
                 group by p.order_id \
               ) pay on pay.order_id = o.id \
             left join users u \
@@ -132,33 +132,6 @@ module.exports = function(robot) {
                     WHERE l.created_at >= '" + getLocalTime() + "') AS tmp";
     }
 
-    function getOrdersQuery() {
-        return "SELECT \
-                    round((tmp.gross_sales_cents - tmp.refunded_sales_cents) / 100.0, 2) AS order, \
-                    round((tmp.gross_ios_cents - tmp.refunded_ios_cents) / 100.0, 2) AS ios, \
-                    round((tmp.gross_android_cents - tmp.refunded_android_cents) / 100.0, 2) AS android, \
-                    round((tmp.gross_web_cents - tmp.refunded_web_cents) / 100.0, 2) AS web, \
-                    round((tmp.gross_ios_cents - tmp.refunded_ios_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS ios_percent, \
-                    round((tmp.gross_android_cents - tmp.refunded_android_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS android_percent, \
-                    round((tmp.gross_web_cents - tmp.refunded_web_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS web_percent, \
-                    round((tmp.gross_facebook_cents - tmp.refunded_facebook_cents)/(tmp.gross_sales_cents - tmp.refunded_sales_cents * 1.0), 2) AS facebook_percent \
-                FROM (SELECT  \
-                        SUM(p.amount_cents) AS gross_sales_cents, \
-                        SUM(p.refunded_amount_cents) AS refunded_sales_cents, \
-                        SUM(CASE WHEN o.created_through = 'ios' THEN p.amount_cents ELSE 0 END) AS gross_ios_cents, \
-                        SUM(CASE WHEN o.created_through = 'ios' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_ios_cents, \
-                        SUM(CASE WHEN o.created_through = 'android' THEN p.amount_cents ELSE 0 END) AS gross_android_cents, \
-                        SUM(CASE WHEN o.created_through = 'android' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_android_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' THEN p.amount_cents ELSE 0 END) as gross_web_cents, \
-                        SUM(CASE WHEN o.created_through = 'web' THEN p.refunded_amount_cents ELSE 0 END) AS refunded_web_cents, \
-                        SUM(CASE WHEN o.facebook_order_id IS NOT NULL THEN p.amount_cents ELSE 0 END) as gross_facebook_cents, \
-                        SUM(CASE WHEN o.facebook_order_id IS NOT NULL THEN p.refunded_amount_cents ELSE 0 END) AS refunded_facebook_cents \
-                    FROM payments p \
-                    INNER JOIN orders o ON o.id = p.order_id \
-                    WHERE o.aasm_state = 'completed' \
-                    AND o.created_at >= '" + getLocalTime() + "') AS tmp";
-    }
-
     function toMoney(str) {
         try {
             return '$' + parseFloat(str).format(2);
@@ -173,52 +146,6 @@ module.exports = function(robot) {
         } catch(e) {
             return e.message;
         }
-    }
-
-    function getSalesInfo2(reply, onSuccess) {
-        pool.connect(function(err, client, done) {
-
-            if (err) {
-                reply.send('Poop. I fail: ' + err);
-                return;
-            }
-
-            // get orders data first
-            client.query(getOrdersQuery(), function(err, result) {
-
-                if (err) {
-                    done();
-                    reply.send('Poop. I fail: ' + err);
-                } else {
-
-                    // success! now get labels data
-                    var ordersRow = result.rows[0];
-                    client.query(getLabelsQuery(), function(err, result) {
-
-                        done();
-
-                        if (err) {
-                            reply.send('Poop. I fail: ' + err);
-                        } else {
-                            var labelsRow = result.rows[0];
-                            var total = parseFloat(ordersRow.order).format(2) + parseFloat(labelsRow.label).format(2);
-
-                            onSuccess({
-                                total: toMoney(total),
-                                order: toMoney(ordersRow.order),
-                                label: toMoney(labelsRow.label),
-                                ios: toMoney(ordersRow.ios),
-                                android: toMoney(ordersRow.android),
-                                web: toMoney(ordersRow.web),
-                                iosPercent: toPercent(ordersRow.ios_percent),
-                                androidPercent: toPercent(ordersRow.android_percent),
-                                webPercent: toPercent(ordersRow.web_percent)
-                            });
-                        }
-                    });
-                }
-            });
-        });
     }
 
     function getSalesInfo(reply, onSuccess) {
