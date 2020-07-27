@@ -4,7 +4,7 @@ let time = require('time-ago')();
 module.exports = function(robot) {
 
     function getTagInstructions(version) {
-        return '\n\n_Did you remember to tag the release?_\n```\n$ git checkout master\n$ git pull\n$ git tag v' + version + '\n$ git push origin v' + version + '\n```';
+        return '\n\n_Did you remember to tag the release?_\n```\n$ git checkout main\n$ git pull\n$ git tag v' + version + '\n$ git push origin v' + version + '\n```';
     }
 
     function androidVersion(reply) {
