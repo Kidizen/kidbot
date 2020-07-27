@@ -168,7 +168,6 @@ module.exports = function(robot) {
                         total:                  toMoney(row.total),
                         order:                  toMoney(row.order),
                         label:                  toMoney(row.label),
-                        cashout_fees_collected: toMoney(row.cashout_fees_collected),
                         ios:                    toMoney(row.ios),
                         android:                toMoney(row.android),
                         web:                    toMoney(row.web),
@@ -271,7 +270,6 @@ module.exports = function(robot) {
               ':moneybag: ' + res.total +
               '\n:dress: ' + res.order +
               '\n:label: ' + res.label +
-              '\n:bank: ' + res.cashout_fees_collected +
               '\n:ios: ' + res.iosPercent + ' (' + res.ios + ')' +
               '\n:android: ' + res.androidPercent + ' ('+ res.android + ')' +
               '\n:desktop_computer: ' + res.webPercent + ' (' + res.web + ')' +
