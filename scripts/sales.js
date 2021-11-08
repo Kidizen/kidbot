@@ -33,7 +33,7 @@ module.exports = function(robot) {
       idleTimeoutMillis: 1000 * 60 * 5
     });
 
-    const TIMEZONE = 'CDT'; // CST/CDT, depending on daylight saving time
+    const TIMEZONE = 'CST'; // CST/CDT, depending on daylight saving time
     const HOUR_OFFSET = TIMEZONE == 'CDT' ? 5 : 6;
     const MILLESECOND_OFFSET = (HOUR_OFFSET*60*60*1000);
 
