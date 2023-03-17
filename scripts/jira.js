@@ -1,3 +1,15 @@
+// Description:
+//   you know, for kids
+//
+// Dependencies:
+//   None
+//
+// Configuration:
+//   None
+//
+// Commands:
+//   hubot [mark|move] KID-[0-9] as X - Change the status of a "KID-" Jira ticket to X
+//   hubot create X for [baseservice|ios|android|design] Y - Create a Jira ticket with type X for a platform with Y description
 module.exports = function(robot) {
 
     function getJIRAAuth() {

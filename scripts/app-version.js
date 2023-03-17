@@ -1,3 +1,18 @@
+// Description:
+//   Track and report information about Kidizen Android and iOS apps.
+//
+// Dependencies:
+//   None
+//
+// Configuration:
+//   None
+//
+// Commands:
+//   hubot set android version to X - Set the current Kidizen Android app version
+//   hubot set ios version to X - Set the current Kidizen iOS app version
+//   hubot ios [version|release] - Get the current Kidizen iOS app version
+//   hubot android [version|release] - Get the current Kidizen Android app version
+
 let dateFormat = require('dateformat');
 let time = require('time-ago')();
 

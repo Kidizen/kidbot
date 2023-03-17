@@ -1,3 +1,14 @@
+// Description:
+//   Get a Kidbucks report
+//
+// Dependencies:
+//   None
+//
+// Configuration:
+//   None
+//
+// Commands:
+//   hubot get kidbucks export
 module.exports = function(robot) {
 
     var pg = require('pg');
