@@ -29,8 +29,8 @@ module.exports = function(robot) {
     // PGPORT
     var pool = new pg.Pool({
       max: 10,
-      ssl: true,
-      idleTimeoutMillis: 1000 * 60 * 5
+      idleTimeoutMillis: 1000 * 60 * 5,
+      ssl: { rejectUnauthorized: false }
     });
 
     const TIMEZONE = 'CDT'; // CST/CDT, depending on daylight saving time
