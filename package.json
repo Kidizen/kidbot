@@ -9,7 +9,7 @@
     "dateformat": "^3.0.2",
     "hubot": "^3.3.2",
     "hubot-darksky": "^1.1.0",
-    "hubot-diagnostics": "0.0.1",
+    "hubot-diagnostics": "^1.0.0",
     "hubot-encourage": "^1.0.2",
     "hubot-google-images": "^0.2.6",
     "hubot-google-translate": "^0.2.0",
