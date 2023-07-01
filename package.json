@@ -22,7 +22,7 @@
     "hubot-shipit": "^0.2.0",
     "hubot-slack": "^4.10.0",
     "hubot-zendesk": "^1.0.2",
-    "npm": "^9.6.1",
+    "npm": "^9.7.2",
     "pg": "^8.10.0",
     "time-ago": "^0.1.0"
   },
